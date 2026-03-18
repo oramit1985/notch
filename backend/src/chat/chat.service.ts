@@ -20,15 +20,14 @@ export class ChatService {
 
     const fullMessages = [systemMessage, ...messages];
 
-    // Part A + Part B run in parallel
     const [chatCompletion, sentimentCompletion] = await Promise.all([
-      // Part A: chat response
+      /** Part A: chat response */
       this.openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: fullMessages,
       }),
 
-      // Part B: sentiment extraction via function calling
+      /** Part B: sentiment extraction via function calling */
       this.openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: fullMessages,
@@ -60,7 +59,7 @@ export class ChatService {
       }),
     ]);
 
-    // Log sentiment (Part B)
+    /** Log sentiment (Part B) */
     const toolCall = sentimentCompletion.choices[0]?.message?.tool_calls?.[0];
     if (toolCall) {
       const { score } = JSON.parse(toolCall.function.arguments) as {
