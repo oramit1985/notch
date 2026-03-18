@@ -100,6 +100,12 @@ async function submitMessage() {
     content: message,
   });
 
+  const truncateWithEllipsis = (text: string, maxLength: number = 45) => {
+    return text.length > maxLength
+        ? text.slice(0, maxLength) + '…'
+        : text;
+  }
+
   if (chatMessages.value.length === 1) {
     title.value = truncateWithEllipsis(message, 45);
   }

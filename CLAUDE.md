@@ -4,15 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Running the project
 
+The shared library must be built before the backend or frontend can use it:
+
 ```bash
-# Backend (NestJS, runs on port 3000)
+# 1. Build shared library (required before first run and after any changes to shared/)
+cd shared && npm install && npm run build
+
+# 2. Backend (NestJS, runs on port 3000)
 cd backend && npm install && npm start
 # or for auto-reload during development:
 cd backend && npm run start:dev
 
-# Frontend (Vue 3 + Vite, runs on port 5173)
+# 3. Frontend (Vue 3 + Vite, runs on port 5173)
 cd frontend && npm install && npm run dev
 ```
+
+If you change files in `shared/`, re-run `npm run build` inside `shared/` — the backend and frontend both reference it as `file:../shared` and consume the compiled `dist/` output.
 
 Set your OpenAI API key in `backend/local.env` before starting the backend:
 ```
