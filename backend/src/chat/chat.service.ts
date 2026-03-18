@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
-import { ChatMessage, ChatResponse, MessageRole } from '@notch/shared';
+import {ChatMessage, ChatResponse, MessageRole, OpenAiModels} from '@notch/shared';
 import { config } from '../config';
+import {CHAT_SYSTEM_MESSAGE, SENTIMENT_TOOL} from "./chat.consts";
 
 @Injectable()
 export class ChatService {
@@ -13,9 +14,8 @@ export class ChatService {
 
   async chat(messages: ChatMessage[]): Promise<ChatResponse> {
     const systemMessage = {
-      role: 'system' as const,
-      content:
-        'You are a helpful and friendly assistant. You MUST end every single one of your messages with a unique emoji that you have not used before in this conversation. Choose the emoji based on the content or mood of your response.',
+      role: MessageRole.System,
+      content: CHAT_SYSTEM_MESSAGE,
     };
 
     const fullMessages = [systemMessage, ...messages];
@@ -23,35 +23,15 @@ export class ChatService {
     const [chatCompletion, sentimentCompletion] = await Promise.all([
       /** Part A: chat response */
       this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: OpenAiModels.FOUR_O_MINI,
         messages: fullMessages,
       }),
 
       /** Part B: sentiment extraction via function calling */
       this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: OpenAiModels.FOUR_O_MINI,
         messages: fullMessages,
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: 'record_sentiment',
-              description:
-                "Rate the user's current sentiment based on the conversation so far",
-              parameters: {
-                type: 'object',
-                properties: {
-                  score: {
-                    type: 'number',
-                    description:
-                      'Sentiment score from 0 (very negative) to 100 (very positive)',
-                  },
-                },
-                required: ['score'],
-              },
-            },
-          },
-        ],
+        tools: [ SENTIMENT_TOOL ],
         tool_choice: {
           type: 'function',
           function: { name: 'record_sentiment' },

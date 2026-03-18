@@ -22,7 +22,7 @@
           v-for="message in chatMessages"
           :key="message.id"
           :content="message.content"
-          :role="message.role === MessageRole.User ? 'user' : 'agent'"
+          :role="message.role"
         />
         <div v-if="isLoading" class="typing-indicator">
           <span></span><span></span><span></span>
@@ -55,7 +55,7 @@ import ChatMessage from '../components/ChatMessage.vue';
 
 interface DisplayMessage {
   id: string;
-  role: typeof MessageRole.User | typeof MessageRole.Assistant;
+  role: MessageRole;
   content: string;
 }
 

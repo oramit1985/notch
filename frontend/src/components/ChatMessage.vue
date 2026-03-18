@@ -1,16 +1,18 @@
 <template>
-  <div :class="['message-row', role === 'user' ? 'row-user' : 'row-agent']">
-    <div v-if="role === 'agent'" class="avatar">N</div>
-    <div :class="['bubble', role === 'user' ? 'bubble-user' : 'bubble-agent']">
+  <div :class="['message-row', role === MessageRole.User ? 'row-user' : 'row-agent']">
+    <div v-if="role === MessageRole.Assistant" class="avatar">N</div>
+    <div :class="['bubble', role === MessageRole.User ? 'bubble-user' : 'bubble-agent']">
       {{ content }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { MessageRole } from '@notch/shared';
+
 defineProps<{
   content: string;
-  role: 'user' | 'agent';
+  role: MessageRole;
 }>();
 </script>
 
