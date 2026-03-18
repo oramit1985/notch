@@ -27,6 +27,8 @@ PORT=3000
 OPENAI_API_KEY=sk-...
 ```
 
+> **Note on secrets:** `backend/local.env` is intentionally committed to git for convenience in this project. In a production setup, this file should never be committed — secrets should be injected at deploy time from a vault (e.g. HashiCorp Vault, AWS Secrets Manager) via the CI/CD pipeline.
+
 Set the API base URL in `frontend/.env` (or `frontend/local.env`):
 ```
 VITE_API_URL=http://localhost:3000
@@ -70,4 +72,4 @@ GET  /conversations/:id       → Conversation  (full history)
 POST /conversations/:id/chat  { content: string } → ChatResponse { role, content }
 ```
 
-> Conversations are stored in-memory on the server — they persist across browser refreshes but are lost on server restart.
+> **Note on persistence:** Conversations are stored in-memory (`Map<string, Conversation>` in `ConversationService`) as a deliberate simplification for this home assignment — they survive browser refreshes but are lost on server restart. In a real-world application this would be replaced with a database (e.g. PostgreSQL via TypeORM/Prisma), with each conversation and its messages persisted as rows.
