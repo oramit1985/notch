@@ -20,7 +20,19 @@ PORT=3000
 OPENAI_API_KEY=sk-...
 ```
 
+Set the API base URL in `frontend/.env` (or `frontend/local.env`):
+```
+VITE_API_URL=http://localhost:3000
+```
+
 ## Architecture
+
+### Shared library — `@notch/shared`
+
+- `shared/src/types/enums.ts` — `MessageRole` (`user` | `assistant` | `system`), `OpenAiModels`
+- `shared/src/types/interfaces.ts` — `ChatMessage`, `ChatRequest`, `ChatResponse`, `Conversation`, `ConversationSummary`, `CreateMessageRequest`
+- `shared/src/utils/text.ts` — `truncateWithEllipsis` helper (used by both frontend and backend)
+- Both backend and frontend import from `@notch/shared`
 
 ### Backend — NestJS
 
@@ -29,25 +41,26 @@ OPENAI_API_KEY=sk-...
 - `src/chat/chat.service.ts` — core logic: fires **two parallel OpenAI requests** per user message:
   1. Chat completion (Part A) — uses a system prompt to enforce unique emoji signatures
   2. Function calling with `record_sentiment` tool forced (Part B) — logs a 0–100 sentiment score to console
-- The controller accepts `POST /chat` with `{ messages: {role, content}[] }` and returns `{ role, content }`
+- `src/conversation/conversation.service.ts` — in-memory store (`Map<string, Conversation>`); handles create, list, get, and sendMessage (appends user message, calls `ChatService`, appends assistant reply; sets title from first message)
+- `src/conversation/conversation.controller.ts` — exposes the conversations REST API
 
 ### Frontend — Vue 3 + Vite
 
-- `src/App.vue` — maintains the full message history in a `ref<IMessage[]>`, maps `agent` → `assistant` when sending to the API, handles loading state and auto-scroll
+- `src/App.vue` — minimal shell; just renders `<RouterView />`
+- `src/router/index.ts` — Vue Router with two routes:
+  - `/` → `ConversationList.vue`
+  - `/conversations/:id` → `ChatView.vue`
+- `src/views/ConversationList.vue` — lists all conversations (fetched from `GET /conversations`), "New chat" button creates a conversation and navigates into it
+- `src/views/ChatView.vue` — full chat UI for a single conversation; loads history on mount via `GET /conversations/:id`, sends messages via `POST /conversations/:id/chat`; sets title from the first message
 - `src/components/ChatMessage.vue` — styled bubble: green (right-aligned) for user, blue (left-aligned) for agent
-- The frontend sends the entire conversation history on every message so the backend can pass it to OpenAI for context
 
 ### API contract
 
-`POST http://localhost:3000/chat`
-```json
-{ "messages": [{ "role": "user" | "assistant", "content": "..." }] }
 ```
-Response:
-```json
-{ "role": "assistant", "content": "..." }
+GET  /conversations           → ConversationSummary[]
+POST /conversations           → Conversation  (creates new, empty conversation)
+GET  /conversations/:id       → Conversation  (full history)
+POST /conversations/:id/chat  { content: string } → ChatResponse { role, content }
 ```
 
-## Part C (if time allows)
-
-The readme describes an optional "conversations" feature: a list view of ongoing conversations, ability to create/enter/navigate them, with state persisted across browser refresh (but not server restart). This would require adding Vue Router, a conversation store (Pinia or composable), and a server-side in-memory store keyed by conversation ID.
+> Conversations are stored in-memory on the server — they persist across browser refreshes but are lost on server restart.

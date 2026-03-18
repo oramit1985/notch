@@ -1,3 +1,2 @@
-export * from './types/enums';
-export * from './types/interfaces';
+export * from './types';
 export * from './utils';
