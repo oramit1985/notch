@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@notch/shared": "file:../shared",
     "vue": "^3.4.0"
   },
   "devDependencies": {

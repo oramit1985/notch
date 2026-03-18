@@ -47,16 +47,12 @@
 
 <script setup lang="ts">
 import { ref, nextTick } from 'vue';
+import { type ChatMessage as ApiMessage, type ChatResponse, MessageRole } from '@notch/shared';
 import ChatMessage from './components/ChatMessage.vue';
 
 interface IMessage {
   id: string;
   role: 'user' | 'agent';
-  content: string;
-}
-
-interface ApiMessage {
-  role: 'user' | 'assistant';
   content: string;
 }
 
@@ -91,7 +87,7 @@ async function submitMessage() {
 
   try {
     const apiMessages: ApiMessage[] = chatMessages.value.map((m) => ({
-      role: m.role === 'agent' ? 'assistant' : 'user',
+      role: m.role === 'agent' ? MessageRole.Assistant : MessageRole.User,
       content: m.content,
     }));
 
@@ -101,7 +97,7 @@ async function submitMessage() {
       body: JSON.stringify({ messages: apiMessages }),
     });
 
-    const data = (await response.json()) as { role: string; content: string };
+    const data = (await response.json()) as ChatResponse;
 
     chatMessages.value.push({
       id: String(chatMessages.value.length + 1),

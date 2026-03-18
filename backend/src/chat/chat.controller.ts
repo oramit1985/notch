@@ -1,14 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import { ChatRequest } from '@notch/shared';
 import { ChatService } from './chat.service';
-
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
-interface ChatRequest {
-  messages: ChatMessage[];
-}
 
 @Controller('chat')
 export class ChatController {

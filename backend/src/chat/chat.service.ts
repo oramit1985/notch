@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
+import { ChatMessage, ChatResponse, MessageRole } from '@notch/shared';
 import { config } from '../config';
-
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
 
 @Injectable()
 export class ChatService {
@@ -15,7 +11,7 @@ export class ChatService {
     this.openai = new OpenAI({ apiKey: config.OPENAI_API_KEY });
   }
 
-  async chat(messages: ChatMessage[]) {
+  async chat(messages: ChatMessage[]): Promise<ChatResponse> {
     const systemMessage = {
       role: 'system' as const,
       content:
@@ -65,8 +61,7 @@ export class ChatService {
     ]);
 
     // Log sentiment (Part B)
-    const toolCall =
-      sentimentCompletion.choices[0]?.message?.tool_calls?.[0];
+    const toolCall = sentimentCompletion.choices[0]?.message?.tool_calls?.[0];
     if (toolCall) {
       const { score } = JSON.parse(toolCall.function.arguments) as {
         score: number;
@@ -75,7 +70,7 @@ export class ChatService {
     }
 
     return {
-      role: 'assistant',
+      role: MessageRole.Assistant,
       content: chatCompletion.choices[0]?.message?.content ?? '',
     };
   }
